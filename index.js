@@ -14,7 +14,7 @@ var htmlTplString = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<% adsenseId %>
+<% adsense %>
   <meta charset="UTF-8">
   <title><% title %></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui.css" />
@@ -43,7 +43,7 @@ var htmlTplString = `
 </head>
 
 <body>
-
+<% adsense2 %>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0">
   <defs>
     <symbol viewBox="0 0 20 20" id="unlocked">
@@ -200,8 +200,18 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
   var htmlWithCustomJsUrl = htmlWithFavIcon.replace('<% customJs %>', toTags(customJs, toExternalScriptTag))
   var htmlWithCustomJs = htmlWithCustomJsUrl.replace('<% customJsStr %>', toTags(customJsStr, toInlineScriptTag))
   var htmlWithCustomCssUrl = htmlWithCustomJs.replace('<% customCssUrl %>', toTags(customCssUrl, toExternalStylesheetTag))
-  var htmlWithAdsense = htmlWithCustomCssUrl.replace("<% adsenseId %>", (adsenseId ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}"
-     crossorigin="anonymous"></script>` : ""));
+  var htmlWithAdsense = htmlWithCustomCssUrl.replace("<% adsense %>", (adsenseId ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}"
+     crossorigin="anonymous"></script><script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>` : ""));
+  var htmlWithAdsense2 = htmlWithAdsense.replace("<% adsense2 %>", (adsenseId ? `<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="${adsenseId}"
+     data-ad-slot="${opts.adsId || ""}"
+     data-ad-format="auto"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>` : ""));
   var initOptions = {
     swaggerDoc: swaggerDoc || undefined,
     customOptions: options,
