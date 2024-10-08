@@ -43,7 +43,6 @@ var htmlTplString = `
 </head>
 
 <body>
-<% adsense2 %>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0">
   <defs>
     <symbol viewBox="0 0 20 20" id="unlocked">
@@ -78,7 +77,9 @@ var htmlTplString = `
   </defs>
 </svg>
 
+<% adsense2 %>
 <div id="swagger-ui"></div>
+<% adsense2 %>
 
 <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui-bundle.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui-standalone-preset.js" defer></script>
@@ -207,7 +208,8 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
      style="display:block"
      data-ad-client="${adsenseId}"
      data-ad-slot="${opts.adsId || ""}"
-     data-ad-format="auto"></ins>
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
 <script>
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>` : ""));
