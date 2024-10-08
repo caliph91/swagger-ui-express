@@ -221,7 +221,7 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
   }
 
   swaggerInit = _jsTplString.toString().replace('<% swaggerOptions %>', stringify(initOptions))
-  return htmlWithAdsense.replace("<% swaggerScript %>", swaggerInit).replace('<% title %>', customSiteTitle).replace('<% customDesc %>', customSiteDesc);
+  return htmlWithAdsense2.replace("<% swaggerScript %>", swaggerInit).replace('<% title %>', customSiteTitle).replace('<% customDesc %>', customSiteDesc);
 }
 
 var setup = function (swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, customSiteDesc) {
