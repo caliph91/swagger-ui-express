@@ -204,7 +204,8 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
      crossorigin="anonymous"></script><script>
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>` : ""));
-  var htmlWithAdsense2 = htmlWithAdsense.replace("<% adsense2 %>", (adsenseId ? `<ins class="adsbygoogle"
+  var htmlWithAdsense2 = htmlWithAdsense.replace(/<% adsense2 %>/g, (adsenseId ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}"
+     crossorigin="anonymous"></script><ins class="adsbygoogle"
      style="display:block"
      data-ad-client="${adsenseId}"
      data-ad-slot="${opts.adsId || ""}"
