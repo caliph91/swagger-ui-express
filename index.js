@@ -1,7 +1,7 @@
 'use strict'
-
 var express = require('express')
-var getAbsoluteSwaggerFsPath = require('swagger-ui-dist/absolute-path')
+var swaggerUi = require('swagger-ui-dist')
+var UglifyJS = require("uglify-js");
 var favIconHtml = '<link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />' +
   '<link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />'
 var swaggerInit = ''
@@ -11,15 +11,16 @@ function trimQuery(q) {
 }
 
 var htmlTplString = `
-<!-- HTML for static distribution bundle build -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<% adsenseId %>
   <meta charset="UTF-8">
-  <% robotsMetaString %>
   <title><% title %></title>
-  <link rel="stylesheet" type="text/css" href="./swagger-ui.css" >
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui.css" />
   <% favIconString %>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="<% customDesc %>">
   <style>
     html
     {
@@ -79,9 +80,9 @@ var htmlTplString = `
 
 <div id="swagger-ui"></div>
 
-<script src="./swagger-ui-bundle.js"> </script>
-<script src="./swagger-ui-standalone-preset.js"> </script>
-<script src="./swagger-ui-init.js"> </script>
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui-bundle.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui-standalone-preset.js" defer></script>
+<script><% swaggerScript %></script>
 <% customJs %>
 <% customJsStr %>
 <% customCssUrl %>
@@ -91,7 +92,7 @@ var htmlTplString = `
 </body>
 
 </html>
-`
+`.trim()
 
 var jsTplString = `
 window.onload = function() {
@@ -131,25 +132,13 @@ window.onload = function() {
     ui.initOAuth(customOptions.oauth)
   }
 
-  if (customOptions.preauthorizeApiKey) {
-    const key = customOptions.preauthorizeApiKey.authDefinitionKey;
-    const value = customOptions.preauthorizeApiKey.apiKeyValue;
-    if (!!key && !!value) {
-      const pid = setInterval(() => {
-        const authorized = ui.preauthorizeApiKey(key, value);
-        if(!!authorized) clearInterval(pid);
-      }, 500)
-
-    }
-  }
-
   if (customOptions.authAction) {
     ui.authActions.authorize(customOptions.authAction)
   }
 
   window.ui = ui
 }
-`
+`.trim()
 
 function toExternalScriptTag(url) {
   return `<script src='${url}'></script>`
@@ -173,24 +162,24 @@ function toTags(customCode, toScript) {
   }
 }
 
-var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, _htmlTplString, _jsTplString) {
+var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, customSiteDesc, _htmlTplString, _jsTplString) {
   var isExplorer
   var customJs
   var customJsStr
   var swaggerUrls
   var customCssUrl
-  var customRobots
   if (opts && typeof opts === 'object') {
     options = opts.swaggerOptions
     customCss = opts.customCss
     customJs = opts.customJs
     customJsStr = opts.customJsStr
     customfavIcon = opts.customfavIcon
-    customRobots = opts.customRobots
+    adsenseId = opts.adsenseId;
     swaggerUrl = opts.swaggerUrl
     swaggerUrls = opts.swaggerUrls
     isExplorer = opts.explorer || !!swaggerUrls
     customSiteTitle = opts.customSiteTitle
+    customSiteDesc = opts.customSiteDesc
     customCssUrl = opts.customCssUrl
   } else {
     //support legacy params based function
@@ -201,14 +190,13 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
   customCss = explorerString + ' ' + customCss || explorerString
   customfavIcon = customfavIcon || false
   customSiteTitle = customSiteTitle || 'Swagger UI'
+  customSiteDesc = customSiteDesc || 'Swagger UI ExpressJS'
   _htmlTplString = _htmlTplString || htmlTplString
   _jsTplString = _jsTplString || jsTplString
 
-  var robotsMetaString = customRobots ? '<meta name="robots" content="' + customRobots + '" />' : ''
   var favIconString = customfavIcon ? '<link rel="icon" href="' + customfavIcon + '" />' : favIconHtml
   var htmlWithCustomCss = _htmlTplString.toString().replace('<% customCss %>', customCss)
-  var htmlWithCustomRobots = htmlWithCustomCss.replace('<% robotsMetaString %>', robotsMetaString)
-  var htmlWithFavIcon = htmlWithCustomRobots.replace('<% favIconString %>', favIconString)
+  var htmlWithFavIcon = htmlWithCustomCss.replace('<% favIconString %>', favIconString)
   var htmlWithCustomJsUrl = htmlWithFavIcon.replace('<% customJs %>', toTags(customJs, toExternalScriptTag))
   var htmlWithCustomJs = htmlWithCustomJsUrl.replace('<% customJsStr %>', toTags(customJsStr, toInlineScriptTag))
   var htmlWithCustomCssUrl = htmlWithCustomJs.replace('<% customCssUrl %>', toTags(customCssUrl, toExternalStylesheetTag))
@@ -221,14 +209,15 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
   }
 
   swaggerInit = _jsTplString.toString().replace('<% swaggerOptions %>', stringify(initOptions))
-  return htmlWithCustomCssUrl.replace('<% title %>', customSiteTitle)
+  return htmlWithCustomCssUrl.replace("<% swaggerScript %>", swaggerInit).replace('<% title %>', customSiteTitle).replace('<% customDesc %>', customSiteDesc).replace("<% adsenseId %>", adsenseId ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}"
+     crossorigin="anonymous"></script>` : "")
 }
 
-var setup = function (swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle) {
-  var html = generateHTML(swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, htmlTplString, jsTplString)
+var setup = function (swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, customSiteDesc) {
+  var html = (typeof opts == "object" && opts.minify) ? minify(generateHTML(swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, customSiteDesc, htmlTplString, jsTplString), { collapseWhitespace: true, minifyCSS: true, minifyJS: true }) : generateHTML(swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, customSiteDesc, htmlTplString, jsTplString);
   return function (req, res) {
     if (req.swaggerDoc) {
-      var reqHtml = generateHTML(req.swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, htmlTplString, jsTplString)
+      var reqHtml = generateHTML(req.swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, customSiteDesc, htmlTplString, jsTplString)
       res.send(reqHtml)
     } else {
       res.send(html)
@@ -238,9 +227,9 @@ var setup = function (swaggerDoc, opts, options, customCss, customfavIcon, swagg
 
 function swaggerInitFn(req, res, next) {
   if (trimQuery(req.url).endsWith('/package.json')) {
-    res.sendStatus(404)
+    res.status(403).send()
   } else if (trimQuery(req.url).endsWith('/swagger-ui-init.js')) {
-    res.set('Content-Type', 'application/javascript')
+    res.set('Content-Type', 'text/javascript')
     res.send(swaggerInit)
   } else {
     next()
@@ -251,13 +240,12 @@ var swaggerInitFunction = function (swaggerDoc, opts) {
   var swaggerInitFile = jsTplString.toString().replace('<% swaggerOptions %>', stringify(opts))
   return function (req, res, next) {
     if (trimQuery(req.url).endsWith('/package.json')) {
-      res.sendStatus(404)
+      res.status(403).send()
     } else if (trimQuery(req.url).endsWith('/swagger-ui-init.js')) {
       if (req.swaggerDoc) {
-        opts.swaggerDoc = req.swaggerDoc
         swaggerInitFile = jsTplString.toString().replace('<% swaggerOptions %>', stringify(opts))
       }
-      res.set('Content-Type', 'application/javascript')
+      res.set('Content-Type', 'text/javascript')
       res.send(swaggerInitFile)
     } else {
       next()
@@ -268,7 +256,7 @@ var swaggerInitFunction = function (swaggerDoc, opts) {
 var swaggerAssetMiddleware = options => {
   var opts = options || {}
   opts.index = false
-  return express.static(getAbsoluteSwaggerFsPath(), opts)
+  return express.static(swaggerUi.getAbsoluteFSPath(), opts)
 }
 
 var serveFiles = function (swaggerDoc, opts) {
