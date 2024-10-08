@@ -162,7 +162,7 @@ function toTags(customCode, toScript) {
   }
 }
 
-var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, customSiteDesc, _htmlTplString, _jsTplString) {
+var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon, adsenseId, swaggerUrl, customSiteTitle, customSiteDesc, _htmlTplString, _jsTplString) {
   var isExplorer
   var customJs
   var customJsStr
