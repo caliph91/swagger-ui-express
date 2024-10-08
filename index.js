@@ -200,7 +200,8 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
   var htmlWithCustomJsUrl = htmlWithFavIcon.replace('<% customJs %>', toTags(customJs, toExternalScriptTag))
   var htmlWithCustomJs = htmlWithCustomJsUrl.replace('<% customJsStr %>', toTags(customJsStr, toInlineScriptTag))
   var htmlWithCustomCssUrl = htmlWithCustomJs.replace('<% customCssUrl %>', toTags(customCssUrl, toExternalStylesheetTag))
-
+  var htmlWithAdsense = htmlWithCustomCssUrl.replace("<% adsenseId %>", (adsenseId ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}"
+     crossorigin="anonymous"></script>` : ""));
   var initOptions = {
     swaggerDoc: swaggerDoc || undefined,
     customOptions: options,
@@ -209,8 +210,7 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
   }
 
   swaggerInit = _jsTplString.toString().replace('<% swaggerOptions %>', stringify(initOptions))
-  return htmlWithCustomCssUrl.replace("<% swaggerScript %>", swaggerInit).replace('<% title %>', customSiteTitle).replace('<% customDesc %>', customSiteDesc).replace("<% adsenseId %>", adsenseId ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}"
-     crossorigin="anonymous"></script>` : "")
+  return htmlWithAdsense.replace("<% swaggerScript %>", swaggerInit).replace('<% title %>', customSiteTitle).replace('<% customDesc %>', customSiteDesc);
 }
 
 var setup = function (swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, customSiteDesc) {
