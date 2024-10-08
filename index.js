@@ -201,9 +201,7 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
   var htmlWithCustomJs = htmlWithCustomJsUrl.replace('<% customJsStr %>', toTags(customJsStr, toInlineScriptTag))
   var htmlWithCustomCssUrl = htmlWithCustomJs.replace('<% customCssUrl %>', toTags(customCssUrl, toExternalStylesheetTag))
   var htmlWithAdsense = htmlWithCustomCssUrl.replace("<% adsense %>", (adsenseId ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}"
-     crossorigin="anonymous"></script><script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>` : ""));
+     crossorigin="anonymous"></script>` : ""));
   var htmlWithAdsense2 = htmlWithAdsense.replace(/<% adsense2 %>/g, (adsenseId ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}"
      crossorigin="anonymous"></script><ins class="adsbygoogle"
      style="display:block"
